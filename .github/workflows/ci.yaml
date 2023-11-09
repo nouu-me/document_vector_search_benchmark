@@ -10,7 +10,7 @@ on:
 env:
   PYTHON_VERSION: 3.9.15
   POETRY_VERSION: 1.6.1
-  PROJECT_DIR: document_vector_search_benchmark
+  PROJECT_DIR: ./
 
 jobs:
   lint:
