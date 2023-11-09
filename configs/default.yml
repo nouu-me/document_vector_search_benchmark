@@ -3,8 +3,16 @@ datasets:
     version: "1.1"
     split: valid
 embeddings:
+#  - name: CohereEmbedding
+#    model_name: embed-multilingual-light-v3.0
+#  - name: CohereEmbedding
+#    model_name: embed-multilingual-v3.0
   - name: OpenAIEmbedding
     model_name: text-embedding-ada-002
+  - name: SonoisaSentenceBertJapanese
+    model_name: sonoisa/sentence-bert-base-ja-mean-tokens-v2
+  - name: SonoisaSentenceLukeJapanese
+    model_name: sonoisa/sentence-luke-japanese-base-lite
   - name: E5Embedding
     model_name: intfloat/multilingual-e5-small
   - name: E5Embedding

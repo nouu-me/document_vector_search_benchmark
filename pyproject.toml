@@ -25,6 +25,10 @@ scikit-learn = "^1.3.2"
 torch = "^2.1.0"
 transformers = "^4.35.0"
 pandas = "^2.1.2"
+fugashi = "^1.3.0"
+ipadic = "^1.0.0"
+sentencepiece = "^0.1.99"
+cohere = "^4.33"
 
 
 [build-system]

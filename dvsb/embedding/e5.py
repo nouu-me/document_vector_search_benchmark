@@ -1,13 +1,12 @@
 import numpy as np
 import numpy.typing as npt
 import torch
-from torch import Tensor
 from transformers import AutoModel, AutoTokenizer
 
 from .embedding import EMBEDDING_REGISTRY, Embedding
 
 
-def average_pool(last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:
+def average_pool(last_hidden_states: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
     last_hidden = last_hidden_states.masked_fill(~attention_mask[..., None].bool(), 0.0)
     return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
 

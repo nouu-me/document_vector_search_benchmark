@@ -87,6 +87,7 @@ def main() -> None:
     parser = get_parser()
     args = parser.parse_args()
     config_file = f"configs/{args.name}.yml"
+    logger.info(f"load config from {config_file}")
     with open(config_file) as fin:
         config = yaml.safe_load(fin)
 
@@ -112,10 +113,10 @@ def main() -> None:
         logger.info("- " + metric.get_name())
 
     records = []
-    for dataset in datasets:
-        logger.info(f"dataset: {dataset.get_name()}")
-        for embedding in embeddings:
-            logger.info(f"embedding: {embedding.get_name()}")
+    for embedding in embeddings:
+        logger.info(f"embedding: {embedding.get_name()}")
+        for dataset in datasets:
+            logger.info(f"dataset: {dataset.get_name()}")
             cache_dir = get_embeddings_cache_dir(dataset, embedding)
             if cache and cache_dir.exists():
                 query_embeddings, context_embeddings = load_embeddings_from_cache(cache_dir)
@@ -139,9 +140,10 @@ def main() -> None:
                     records.append(
                         {
                             "dataset": dataset.get_name(),
-                            "embedding": dataset.get_name(),
+                            "embedding": embedding.get_name(),
                             "relevance": relevance.get_name(),
                             "metric": metric.get_name(),
+                            "value": metric_score,
                         }
                     )
     result = pd.DataFrame(records)
