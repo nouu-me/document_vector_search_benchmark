@@ -1,0 +1,42 @@
+name: CI for Document Vector Search Benchmark
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "*"
+
+env:
+  PYTHON_VERSION: 3.9.15
+  POETRY_VERSION: 1.6.1
+  PROJECT_DIR: document_vector_search_benchmark
+
+jobs:
+  lint:
+    permissions:
+      contents: 'read'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - name: Setup Python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Cache
+        uses: actions/cache@v3.0.11
+        with:
+          path: |
+            ${{ env.pythonLocation }}/bin
+            ${{ env.pythonLocation }}/lib/python3.9/site-packages
+          key: poetry-document-vector-search-benchmark-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}
+      - name: Setup Poetry
+        run: |
+          pip install poetry==${{ env.POETRY_VERSION }}
+      - name: Install Dependencies
+        run: |
+          poetry install
+        working-directory: ${{ env.PROJECT_DIR }}
+      - name: Lint
+        run: make lint
+        working-directory: ${{ env.PROJECT_DIR }}
