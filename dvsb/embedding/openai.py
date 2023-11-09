@@ -1,13 +1,9 @@
 import numpy as np
 import numpy.typing as npt
 import openai
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_random_exponential,
-)
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from .embedding import Embedding, EMBEDDING_REGISTRY
+from .embedding import EMBEDDING_REGISTRY, Embedding
 
 
 @EMBEDDING_REGISTRY.register

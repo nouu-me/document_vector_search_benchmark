@@ -2,12 +2,10 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import numpy.typing as npt
-
 from dvsb.registry import Registry
 
 
 class Embedding(ABC):
-
     @abstractmethod
     def get_name(self) -> str:
         ...
