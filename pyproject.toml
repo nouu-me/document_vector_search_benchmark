@@ -6,7 +6,7 @@ authors = ["TatsuyaShirakawa <lilys1204@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.12"
 pyyaml = "^6.0.1"
 requests = "^2.31.0"
 loguru = "^0.7.2"
@@ -17,6 +17,14 @@ black = "^23.11.0"
 flake8 = "^6.1.0"
 types-requests = "^2.31.0.10"
 types-pyyaml = "^6.0.12.12"
+numpy = "^1.26.1"
+openai = "^1.2.0"
+tqdm = "^4.66.1"
+tenacity = "^8.2.3"
+scikit-learn = "^1.3.2"
+torch = "^2.1.0"
+transformers = "^4.35.0"
+pandas = "^2.1.2"
 
 
 [build-system]
@@ -27,6 +35,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.pysen]
 version = "0.10"
 
+
 [tool.pysen.lint]
 enable_black = true
 enable_flake8 = true
@@ -36,3 +45,7 @@ line_length = 119
 py_version = "py310"
 [[tool.pysen.lint.mypy_targets]]
 paths = ["tools", "dvsb"]
+
+
+[tool.mypy]
+plugins = ["numpy.typing.mypy_plugin"]

@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 from dvsb.registry import Registry
 
+__all__ = ["Dataset", "DATASET_REGISTRY"]
+
 
 class Dataset(ABC):
     @abstractmethod
@@ -31,9 +33,8 @@ class Dataset(ABC):
             "name": self.get_name(),
             "num_queries": len(self.get_queries()),
             "num_contexts": len(self.get_contexts()),
-            "avg_num_related_contexts": sum([len(locs) for locs in locations], 0) / len(locations)
+            "avg_num_related_contexts": sum([len(locs) for locs in locations], 0) / len(locations),
         }
 
 
 DATASET_REGISTRY = Registry[Dataset]()
-

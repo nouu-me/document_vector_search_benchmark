@@ -2,4 +2,25 @@ datasets:
   - name: JSQuAD
     version: "1.1"
     split: valid
-
+embeddings:
+  - name: OpenAIEmbedding
+    model_name: text-embedding-ada-002
+  - name: E5Embedding
+    model_name: intfloat/multilingual-e5-small
+  - name: E5Embedding
+    model_name: intfloat/multilingual-e5-base
+  - name: E5Embedding
+    model_name: intfloat/multilingual-e5-large
+relevances:
+  - name: Cosine
+  - name: InnerProduct
+  - name: NegativeL2Distance
+metrics:
+  - name: Recall
+    k: 1
+  - name: Recall
+    k: 3
+  - name: Recall
+    k: 5
+  - name: Recall
+    k: 10

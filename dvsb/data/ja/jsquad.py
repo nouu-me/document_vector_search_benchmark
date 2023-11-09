@@ -1,23 +1,20 @@
 import json
 from pathlib import Path
-from typing import Union
 
-from loguru import logger
 import requests
+from dvsb.data.dataset import DATASET_REGISTRY, Dataset
+from loguru import logger
 
-from dvsb.data.dataset import Dataset, DATASET_REGISTRY
 
-
-@DATASET_REGISTRY.register()
+@DATASET_REGISTRY.register
 class JSQuAD(Dataset):
-
     URLS = {
         "1.1": {
             "train": "https://github.com/yahoojapan/JGLUE/raw/main/datasets/jsquad-v1.1/train-v1.1.json",
-            "valid": "https://github.com/yahoojapan/JGLUE/raw/main/datasets/jsquad-v1.1/valid-v1.1.json"
+            "valid": "https://github.com/yahoojapan/JGLUE/raw/main/datasets/jsquad-v1.1/valid-v1.1.json",
         }
     }
-    
+
     def __init__(self, version: str = "1.1", split: str = "train", cache: bool = True) -> None:
         self.version = version
         self.split = split
@@ -58,7 +55,6 @@ class JSQuAD(Dataset):
             json.dump(self.contexts, fout)
         with open(cache_dir / "related_context_locations.json", "w") as fout:
             json.dump(self.related_context_locations, fout)
-        
 
     def __load_cache(self) -> None:
         cache_dir = self.get_cache_dir()
@@ -73,11 +69,11 @@ class JSQuAD(Dataset):
             self.related_context_locations = json.load(fin)
 
     def load_data(self, version: str, split: str, cache: bool) -> None:
-        if cache:            
+        if cache:
             cache_dir = self.get_cache_dir()
             if cache_dir.exists():
                 self.__load_cache()
-                return 
+                return
         logger.info(f"loading JSQuAD dataset (version: {version}, split: {split})")
         self.titles = []
         self.queries = []
@@ -99,4 +95,3 @@ class JSQuAD(Dataset):
                 self.related_context_locations.extend([[context_location]] * len(cur_queries))
         if cache:
             self.__save_cache()
-        
