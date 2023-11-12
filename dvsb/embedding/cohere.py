@@ -12,6 +12,8 @@ from .embedding import EMBEDDING_REGISTRY, Embedding
 class CohereEmbedding(Embedding):
     def __init__(self, model_name: str = "embed-multilingual-v3.0") -> None:
         self.model_name = model_name
+
+    def load(self) -> None:
         self.client = cohere.Client(os.environ["COHERE_API_KEY"])
 
     def get_name(self) -> str:

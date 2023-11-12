@@ -7,6 +7,10 @@ from dvsb.registry import Registry
 
 class Embedding(ABC):
     @abstractmethod
+    def load(self) -> None:
+        ...
+
+    @abstractmethod
     def get_name(self) -> str:
         ...
 

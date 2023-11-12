@@ -15,8 +15,11 @@ def average_pool(last_hidden_states: torch.Tensor, attention_mask: torch.Tensor)
 class E5Embedding(Embedding):
     def __init__(self, model_name: str = "intfloat/multilingual-e5-small") -> None:
         self.model_name = model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name).eval()
+
+    def load(self) -> None:
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModel.from_pretrained(self.model_name)
+        self.model.eval()
 
     def get_name(self) -> str:
         return f"E5Embedding-{self.model_name}"

@@ -114,6 +114,7 @@ def main() -> None:
 
     records = []
     for embedding in embeddings:
+        embedding.load()
         logger.info(f"embedding: {embedding.get_name()}")
         for dataset in datasets:
             logger.info(f"dataset: {dataset.get_name()}")
@@ -122,11 +123,11 @@ def main() -> None:
                 query_embeddings, context_embeddings = load_embeddings_from_cache(cache_dir)
             else:
                 batch_query_embeddings = []
-                for queries in tqdm(list(make_batch(dataset.get_queries(), batch_size=8))):
+                for queries in tqdm(list(make_batch(dataset.get_queries(), batch_size=4))):
                     batch_query_embeddings.append(embedding.get_embeddings(queries, mode="query"))
                 query_embeddings = np.concatenate(batch_query_embeddings, axis=0)
                 batch_context_embeddings = []
-                for contexts in tqdm(list(make_batch(dataset.get_contexts(), batch_size=8))):
+                for contexts in tqdm(list(make_batch(dataset.get_contexts(), batch_size=4))):
                     batch_context_embeddings.append(embedding.get_embeddings(contexts, mode="context"))
                 context_embeddings = np.concatenate(batch_context_embeddings, axis=0)
                 if cache:
@@ -134,18 +135,20 @@ def main() -> None:
             for relevance in relevances:
                 logger.info(f"relevance: {relevance.get_name()}")
                 relevance_scores = relevance.compute(query_embeddings, context_embeddings)
+                metric_scores = {}
                 for metric in metrics:
                     metric_score = metric.compute(dataset.get_related_context_locations(), relevance_scores)
                     logger.info(f"{metric.get_name()}: {round(metric_score, 5)}")
-                    records.append(
-                        {
-                            "dataset": dataset.get_name(),
-                            "embedding": embedding.get_name(),
-                            "relevance": relevance.get_name(),
-                            "metric": metric.get_name(),
-                            "value": metric_score,
-                        }
-                    )
+                    metric_scores[metric.get_name()] = metric_score
+                records.append(
+                    {
+                        "dataset": dataset.get_name(),
+                        "embedding": embedding.get_name(),
+                        "relevance": relevance.get_name(),
+                    }
+                    | metric_scores
+                )
+        del embedding
     result = pd.DataFrame(records)
     result.to_csv("result.csv", index=False)
 
