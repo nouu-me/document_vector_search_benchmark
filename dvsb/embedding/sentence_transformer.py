@@ -10,8 +10,12 @@ class SentenceTransformerEmbedding(Embedding):
     def __init__(self, model_name: str) -> None:
         self.model_name = model_name
 
-    def load(self) -> None:
-        self.model = SentenceTransformer(self.model_name)
+    def load(self, has_cuda: bool = False) -> None:
+        if has_cuda:
+            self.device = "cuda"
+        else:
+            self.device = "cpu"
+        self.model = SentenceTransformer(self.model_name).to(self.device)
         self.model.eval()
 
     def get_name(self) -> str:

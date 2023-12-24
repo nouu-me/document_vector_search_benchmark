@@ -11,7 +11,12 @@ class Metric(ABC):
         ...
 
     @abstractmethod
-    def compute(self, y_true: list[list[int]], scores: npt.NDArray[np.float64]) -> float:
+    def compute(
+        self,
+        y_true: list[list[int]],
+        scores: npt.NDArray[np.float64] | None = None,
+        y_pred: list[list[int]] | None = None,
+    ) -> float:
         ...
 
 
