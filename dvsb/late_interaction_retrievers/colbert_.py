@@ -17,10 +17,8 @@ class ColBERTRetriever(LateInteractionRetriever):
         model_name: str,
         doc_maxlen: int = 256,
         kmeans_niters: int = 4,
-        nbits: int = 4,
+        nbits: int = 2,
         n_gpu: int = 1,
-        query_token: str = "[質問]",
-        doc_token: str = "[文書]",
     ) -> None:
         self.model_name = model_name
         self.checkpoint = model_name
@@ -30,8 +28,6 @@ class ColBERTRetriever(LateInteractionRetriever):
             nbits=nbits,
             kmeans_niters=kmeans_niters,
             checkpoint=self.checkpoint,
-            query_token=query_token,
-            doc_token=doc_token,
         )
         self.overwrite = True
 
