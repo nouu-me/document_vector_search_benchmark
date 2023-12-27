@@ -14,7 +14,7 @@ from dvsb.late_interaction_retrievers import (
     LATE_INTERACTION_REGISTRY,
     LateInteractionRetriever,
 )
-from dvsb.late_interaction_retrievers.colbert_ import Run, RunConfig
+from dvsb.late_interaction_retrievers._colbert import Run, RunConfig
 from dvsb.metric import METRIC_REGISTRY, Metric
 from dvsb.relevance import RELEVANCE_REGISTRY, Relevance
 from loguru import logger

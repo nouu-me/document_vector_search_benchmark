@@ -1,4 +1,4 @@
-from ctypes import ArgumentError
+from typing import Optional
 import numpy as np
 import numpy.typing as npt
 from dvsb.metric.metric import METRIC_REGISTRY, Metric
@@ -15,12 +15,12 @@ class Recall(Metric):
     def compute(
         self,
         y_true: list[list[int]],
-        scores: npt.NDArray[np.float64] | None = None,
-        y_pred: list[list[int]] | None = None,
+        scores: Optional[npt.NDArray[np.float64]] = None,
+        y_pred: Optional[list[list[int]]] = None,
     ) -> float:
         if y_pred is not None:
             if scores is not None:
-                raise ArgumentError("You can only provide one of 'scores' or 'y_pred'.")
+                raise ValueError("You can only provide one of 'scores' or 'y_pred'.")
             y_pred = [x[: self.k] for x in y_pred]
         else:
             y_pred = np.argsort(scores, axis=1)[:, -self.k :][:, ::-1]

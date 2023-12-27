@@ -1,4 +1,4 @@
-from .colbert_ import ColBERTRetriever
+from ._colbert import ColBERTRetriever
 from .late_interaction_retriever import (
     LATE_INTERACTION_REGISTRY,
     LateInteractionRetriever,
