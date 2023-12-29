@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import datasets
 import requests
 from dvsb.data.dataset import DATASET_REGISTRY, Dataset
 from loguru import logger
@@ -15,7 +16,9 @@ class JSQuAD(Dataset):
         }
     }
 
-    def __init__(self, version: str = "1.1", split: str = "train", cache: bool = True) -> None:
+    def __init__(
+        self, version: str = "1.1", split: str = "train", cache: bool = True
+    ) -> None:
         self.version = version
         self.split = split
         self.name = f"JSQuAD-v{version}-{split}"
@@ -41,7 +44,9 @@ class JSQuAD(Dataset):
         return self.related_context_locations
 
     def get_cache_dir(self) -> Path:
-        return Path(f"~/.dvsb/dataset/ja/jsquad-v{self.version}-{self.split}").expanduser()
+        return Path(
+            f"~/.dvsb/dataset/ja/jsquad-v{self.version}-{self.split}"
+        ).expanduser()
 
     def __save_cache(self) -> None:
         cache_dir = self.get_cache_dir()
@@ -92,6 +97,8 @@ class JSQuAD(Dataset):
                 self.queries.extend(cur_queries)
                 context_location = len(self.contexts)
                 self.contexts.append(cur_context)
-                self.related_context_locations.extend([[context_location]] * len(cur_queries))
+                self.related_context_locations.extend(
+                    [[context_location]] * len(cur_queries)
+                )
         if cache:
             self.__save_cache()

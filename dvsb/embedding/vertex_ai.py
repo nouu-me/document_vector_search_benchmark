@@ -10,10 +10,12 @@ from .embedding import EMBEDDING_REGISTRY, Embedding
 
 @EMBEDDING_REGISTRY.register
 class VertexAITextEmbedding(Embedding):
-    def __init__(self, model_name: str = "textembedding-gecko-multilingual@001") -> None:
+    def __init__(
+        self, model_name: str = "textembedding-gecko-multilingual@001"
+    ) -> None:
         self.model_name = model_name
 
-    def load(self) -> None:
+    def load(self, has_cuda: bool = False) -> None:
         self.model = TextEmbeddingModel.from_pretrained(self.model_name)
 
     def get_name(self) -> str:

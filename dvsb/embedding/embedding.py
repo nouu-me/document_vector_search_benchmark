@@ -7,7 +7,7 @@ from dvsb.registry import Registry
 
 class Embedding(ABC):
     @abstractmethod
-    def load(self) -> None:
+    def load(self, has_cuda: bool) -> None:
         ...
 
     @abstractmethod
