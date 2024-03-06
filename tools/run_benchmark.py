@@ -6,10 +6,13 @@ from typing import Iterable
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import torch
 import yaml
+from loguru import logger
+from tqdm import tqdm
+
 from dvsb.data import DATASET_REGISTRY, Dataset
 from dvsb.embedding import EMBEDDING_REGISTRY, Embedding
-
 from dvsb.late_interaction_retrievers import (
     LATE_INTERACTION_REGISTRY,
     LateInteractionRetriever,
@@ -17,9 +20,6 @@ from dvsb.late_interaction_retrievers import (
 from dvsb.late_interaction_retrievers._colbert import Run, RunConfig
 from dvsb.metric import METRIC_REGISTRY, Metric
 from dvsb.relevance import RELEVANCE_REGISTRY, Relevance
-from loguru import logger
-from tqdm import tqdm
-import torch
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -158,7 +158,18 @@ def main() -> None:
     for embedding in embeddings:
         embedding.load(has_cuda=torch.cuda.is_available())
         logger.info(f"embedding: {embedding.get_name()}")
+        # check if OpenAI, Cohere or Vertex is in the embedding name
         for dataset in datasets:
+            use_small_remote_bsize = (
+                any(
+                    [
+                        "OpenAI" in embedding.get_name(),
+                        "Cohere" in embedding.get_name(),
+                        "VertexAI" in embedding.get_name(),
+                    ]
+                )
+                and "JSQuAD" not in dataset.get_name()
+            )
             logger.info(f"dataset: {dataset.get_name()}")
             cache_dir = get_embeddings_cache_dir(dataset, embedding)
             if cache and cache_dir.exists():
@@ -168,7 +179,12 @@ def main() -> None:
             else:
                 batch_query_embeddings = []
                 for queries in tqdm(
-                    list(make_batch(dataset.get_queries(), batch_size=128))
+                    list(
+                        make_batch(
+                            dataset.get_queries(),
+                            batch_size=32 if use_small_remote_bsize else 128,
+                        )
+                    )
                 ):
                     batch_query_embeddings.append(
                         embedding.get_embeddings(queries, mode="query")
@@ -176,7 +192,12 @@ def main() -> None:
                 query_embeddings = np.concatenate(batch_query_embeddings, axis=0)
                 batch_context_embeddings = []
                 for contexts in tqdm(
-                    list(make_batch(dataset.get_contexts(), batch_size=128))
+                    list(
+                        make_batch(
+                            dataset.get_contexts(),
+                            batch_size=16 if use_small_remote_bsize else 128,
+                        )
+                    )
                 ):
                     batch_context_embeddings.append(
                         embedding.get_embeddings(contexts, mode="context")
