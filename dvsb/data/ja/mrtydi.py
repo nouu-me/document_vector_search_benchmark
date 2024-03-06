@@ -91,7 +91,7 @@ class MrTyDi(Dataset):
 
 
         if sampling_method is not None:
-            corpus = datasets.load_dataset("castorini/mr-tydi-corpus", "japanese")
+            corpus = datasets.load_dataset("castorini/mr-tydi-corpus", "japanese")['train']
             if sampling_method == "hard_negative":
                 if corpus_sample < 0:
                     corpus_sample = 100
