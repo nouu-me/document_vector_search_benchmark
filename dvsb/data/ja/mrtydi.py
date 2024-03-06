@@ -117,14 +117,14 @@ class MrTyDi(Dataset):
 
             positive_indices = []
             for paragraph in d["positive_passages"]:
-                cur_context = passages_map[paragraph["docid"]]
+                cur_context =  paragraph["text"]
                 if cur_context not in context_to_index:
                     context_to_index[cur_context] = len(self.contexts)
                     self.contexts.append(cur_context)
                 positive_indices.append(context_to_index[cur_context])
 
             for paragraph in d["negative_passages"]:
-                cur_context = passages_map[paragraph["docid"]]
+                cur_context =  paragraph["text"]
                 if cur_context not in context_to_index:
                     context_to_index[cur_context] = len(self.contexts)
                     self.contexts.append(cur_context)

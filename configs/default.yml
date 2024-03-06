@@ -6,7 +6,7 @@ datasets:
     version: "1.1"
     split: test
     sampling_method: "hard_negative"
-    corpus_sample: 500
+    corpus_sample: 1000
   - name: MIRACL
     version: "1.0"
     split: dev
