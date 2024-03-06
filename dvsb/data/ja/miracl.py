@@ -105,7 +105,7 @@ class MIRACL(Dataset):
             if sampling_method == "hard_negative":
                 if corpus_sample < 0:
                     corpus_sample = 100
-                hard_neg_urls = "https://github.com/oshizo/JapaneseEmbeddingEval/raw/main/miracl_hard_negs_1000.json"
+                hard_neg_urls = "https://ben.clavie.eu/retrieval/miracl_ja_bm25_top1000.json"
                 hard_negs = requests.get(hard_neg_urls).json()
                 passage_ids = set(
                     [

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional, Literal
 
 import datasets
 import requests
@@ -15,6 +16,7 @@ class MrTyDi(Dataset):
         version: str = "1.0",
         split: str = "test",
         cache: bool = True,
+        sampling_method: Optional[Literal["hard_negative", "random"]] = None,
         corpus_sample: int = 0,
     ) -> None:
         self.version = version
@@ -24,7 +26,7 @@ class MrTyDi(Dataset):
         self.queries: list[str] = []
         self.contexts: list[str] = []
         self.related_context_locations: list[list[int]] = []
-        self.load_data(version, split, cache, corpus_sample)
+        self.load_data(version, split, cache, sampling_method, corpus_sample)
 
     def get_name(self) -> str:
         return self.name
@@ -72,7 +74,7 @@ class MrTyDi(Dataset):
             self.related_context_locations = json.load(fin)
 
     def load_data(
-        self, version: str, split: str, cache: bool, corpus_sample: int
+        self, version: str, split: str, cache: bool, sampling_method: Optional[Literal["hard_negative", "random"]] = None, corpus_sample: int = 0
     ) -> None:
         if cache:
             cache_dir = self.get_cache_dir()
@@ -87,27 +89,33 @@ class MrTyDi(Dataset):
         data = datasets.load_dataset("castorini/mr-tydi", "japanese", split)[split]
         context_to_index = {}  # Map context text to its index
 
-        corpus = datasets.load_dataset("castorini/mr-tydi-corpus", "japanese")
 
-        # Generate 3000 random negatives
-        docids = corpus["train"]["docid"]
-        if corpus_sample > 0:
-            random.seed(42)
-            passage_ids = set(random.sample(docids, corpus_sample))
+        if sampling_method is not None:
+            corpus = datasets.load_dataset("castorini/mr-tydi-corpus", "japanese")
+            if sampling_method == "hard_negative":
+                if corpus_sample < 0:
+                    corpus_sample = 100
+                hard_neg_urls = "https://ben.clavie.eu/retrieval/tydi_ja_bm25_top1000.json"
+                hard_negs = requests.get(hard_neg_urls).json()
+                passage_ids = set(
+                    [
+                        docid
+                        for x in hard_negs.values()
+                        for docid in x["docids"][:corpus_sample]
+                    ]
+                )
+
+            elif sampling_method == "random":
+                if corpus_sample > 0:
+                    random.seed(42)
+                    passage_ids = set(random.sample(corpus["docid"], corpus_sample))
+
+            corpus = corpus.filter(lambda x: x["docid"] in passage_ids)
+            passages_map = {x["docid"]: x["text"] for x in corpus}
+            del corpus
         else:
             passage_ids = set()
 
-        del docids
-
-        for entry in data:
-            for doc in entry["positive_passages"]:
-                passage_ids.add(doc["docid"])
-            for doc in entry["negative_passages"]:
-                passage_ids.add(doc["docid"])
-
-        corpus = corpus["train"].filter(lambda x: x["docid"] in passage_ids)
-        passages_map = {x["docid"]: x["text"] for x in corpus}
-        del corpus
 
         for d in data:
             cur_queries = [d["query"]]

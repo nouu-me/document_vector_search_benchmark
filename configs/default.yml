@@ -3,26 +3,27 @@ datasets:
     version: "1.1"
     split: valid
   - name: MrTyDi
-    version: "1.0"
+    version: "1.1"
     split: test
-    corpus_sample: 100000
+    sampling_method: "hard_negative"
+    corpus_sample: 500
   - name: MIRACL
     version: "1.0"
     split: dev
     sampling_method: "hard_negative"
-    corpus_sample: 200
+    corpus_sample: 500
 #  - name: JSQuAD
 #    version: "1.1"
 #    split: train
 embeddings:
-  - name: CohereEmbedding
-    model_name: embed-multilingual-light-v3.0
-  - name: CohereEmbedding
-    model_name: embed-multilingual-v3.0
-  - name: VertexAITextEmbedding
-    model_name: textembedding-gecko-multilingual@001
-  - name: VertexAITextEmbedding
-    model_name: textembedding-gecko-multilingual@latest
+  # - name: CohereEmbedding
+  #   model_name: embed-multilingual-light-v3.0
+  # - name: CohereEmbedding
+  #   model_name: embed-multilingual-v3.0
+  # - name: VertexAITextEmbedding
+  #   model_name: textembedding-gecko-multilingual@001
+  # - name: VertexAITextEmbedding
+  #   model_name: textembedding-gecko-multilingual@latest
   - name: SentenceTransformerEmbedding
     model_name: sonoisa/sentence-bert-base-ja-mean-tokens-v2
   - name: SentenceTransformerEmbedding
@@ -35,8 +36,8 @@ embeddings:
     model_name: cl-nagoya/unsup-simcse-ja-base
   - name: SentenceTransformerEmbedding
     model_name: cl-nagoya/unsup-simcse-ja-large
-  - name: OpenAIEmbedding
-    model_name: text-embedding-ada-002
+  # - name: OpenAIEmbedding
+  #   model_name: text-embedding-ada-002
   - name: SonoisaSentenceBertJapanese
     model_name: sonoisa/sentence-bert-base-ja-mean-tokens-v2
   - name: SonoisaSentenceLukeJapanese
@@ -48,6 +49,10 @@ embeddings:
   - name: E5Embedding
     model_name: intfloat/multilingual-e5-large
 late_interaction_retrievers:
+late_interaction_retrievers:
+  - name: ColBERTRetriever
+    model_name: bclavie/JaColBERTv2
+    n_gpu: 1
   - name: ColBERTRetriever
     model_name: bclavie/JaColBERT
     n_gpu: 1
