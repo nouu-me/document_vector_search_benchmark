@@ -109,9 +109,8 @@ class MIRACL(Dataset):
                 hard_negs = requests.get(hard_neg_urls).json()
                 passage_ids = set(
                     [
-                        docid
-                        for x in hard_negs.values()
-                        for docid in x["docids"][:corpus_sample]
+                        x
+                        for x in hard_negs.values()[:corpus_sample]
                     ]
                 )
 
