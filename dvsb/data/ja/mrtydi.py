@@ -97,12 +97,7 @@ class MrTyDi(Dataset):
                     corpus_sample = 100
                 hard_neg_urls = "https://ben.clavie.eu/retrieval/tydi_ja_bm25_top1000.json"
                 hard_negs = requests.get(hard_neg_urls).json()
-                passage_ids = set(
-                    [
-                        x
-                        for x in hard_negs.values()[:corpus_sample]
-                    ]
-                )
+                passage_ids = set([docid for x in hard_negs.values() for docid in x[:500]])
 
             elif sampling_method == "random":
                 if corpus_sample > 0:
