@@ -2,20 +2,28 @@ datasets:
   - name: JSQuAD
     version: "1.1"
     split: valid
-  - name: MrTyDi
-    version: "1.1"
-    split: test
-    sampling_method: "hard_negative"
-    corpus_sample: 1000
+  # - name: MrTyDi
+  #   version: "1.1"
+  #   split: test
+  #   sampling_method: "hard_negative"
+  #   corpus_sample: 1000
   - name: MIRACL
     version: "1.0"
     split: dev
     sampling_method: "hard_negative"
-    corpus_sample: 500
+    corpus_sample: 1000
 #  - name: JSQuAD
 #    version: "1.1"
 #    split: train
 embeddings:
+  - name: SentenceTransformerEmbedding
+    model_name: BAAI/bge-m3
+  - name: E5Embedding
+    model_name: intfloat/multilingual-e5-small
+  - name: E5Embedding
+    model_name: intfloat/multilingual-e5-base
+  - name: E5Embedding
+    model_name: intfloat/multilingual-e5-large
   # - name: CohereEmbedding
   #   model_name: embed-multilingual-light-v3.0
   # - name: CohereEmbedding
@@ -42,20 +50,15 @@ embeddings:
     model_name: sonoisa/sentence-bert-base-ja-mean-tokens-v2
   - name: SonoisaSentenceLukeJapanese
     model_name: sonoisa/sentence-luke-japanese-base-lite
-  - name: E5Embedding
-    model_name: intfloat/multilingual-e5-small
-  - name: E5Embedding
-    model_name: intfloat/multilingual-e5-base
-  - name: E5Embedding
-    model_name: intfloat/multilingual-e5-large
-late_interaction_retrievers:
 late_interaction_retrievers:
   - name: ColBERTRetriever
     model_name: bclavie/JaColBERTv2
     n_gpu: 1
+    overwrite: reuse
   - name: ColBERTRetriever
     model_name: bclavie/JaColBERT
     n_gpu: 1
+    overwrite: reuse
 relevances:
   - name: Cosine
 #  - name: InnerProduct
@@ -69,3 +72,5 @@ metrics:
     k: 5
   - name: Recall
     k: 10
+  - name: Recall
+    k : 100

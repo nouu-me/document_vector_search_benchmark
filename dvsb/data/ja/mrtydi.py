@@ -97,18 +97,17 @@ class MrTyDi(Dataset):
                     corpus_sample = 100
                 hard_neg_urls = "https://ben.clavie.eu/retrieval/tydi_ja_bm25_top1000.json"
                 hard_negs = requests.get(hard_neg_urls).json()
-                passage_ids = set([docid for x in hard_negs.values() for docid in x[:500]])
+                print("SAMPLED :", corpus_sample)
+                passage_ids = set([docid for x in hard_negs.values() for docid in x[:corpus_sample]])
 
             elif sampling_method == "random":
                 if corpus_sample > 0:
                     random.seed(42)
                     passage_ids = set(random.sample(corpus["docid"], corpus_sample))
 
-            corpus = corpus.filter(lambda x: x["docid"] in passage_ids)
-            passages_map = {x["docid"]: x["text"] for x in corpus}
-            del corpus
+            passages_map = {x["docid"]: {'title': x['title'], 'text': x["text"]} for x in corpus}
         else:
-            passage_ids = set()
+            raise ValueError("Must specify a valid sampling method.")
 
 
         for d in data:
@@ -117,14 +116,16 @@ class MrTyDi(Dataset):
 
             positive_indices = []
             for paragraph in d["positive_passages"]:
-                cur_context =  paragraph["text"]
+                cur_context =  passages_map[paragraph["docid"]]
+                cur_context = f"{cur_context['title']} {cur_context['text']}"
                 if cur_context not in context_to_index:
                     context_to_index[cur_context] = len(self.contexts)
                     self.contexts.append(cur_context)
                 positive_indices.append(context_to_index[cur_context])
 
             for paragraph in d["negative_passages"]:
-                cur_context =  paragraph["text"]
+                cur_context =  passages_map[paragraph["docid"]]
+                cur_context = f"{cur_context['title']} {cur_context['text']}"
                 if cur_context not in context_to_index:
                     context_to_index[cur_context] = len(self.contexts)
                     self.contexts.append(cur_context)
@@ -132,7 +133,10 @@ class MrTyDi(Dataset):
             # Link each query to its relevant (positive) contexts
             self.related_context_locations.extend([positive_indices] * len(cur_queries))
 
-        for _, passage in passages_map.items():
+        for pid, passage in passages_map.items():
+            passage = f"{passage['title']} {passage['text']}"
+            if pid not in passage_ids:
+                continue
             if passage not in context_to_index:
                 context_to_index[passage] = len(self.contexts)
                 self.contexts.append(passage)

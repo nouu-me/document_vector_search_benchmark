@@ -1,4 +1,5 @@
 import sys
+from typing import Union
 
 from colbert import Indexer, Searcher, IndexUpdater
 from colbert.infra import Run, RunConfig, ColBERTConfig
@@ -15,10 +16,11 @@ class ColBERTRetriever(LateInteractionRetriever):
     def __init__(
         self,
         model_name: str,
-        doc_maxlen: int = 256,
-        kmeans_niters: int = 4,
-        nbits: int = 2,
+        doc_maxlen: int = 300,
+        kmeans_niters: int = 8,
+        nbits: int = 4,
         n_gpu: int = 1,
+        overwrite: Union[bool, str] = True,
     ) -> None:
         self.model_name = model_name
         self.checkpoint = model_name
@@ -29,7 +31,7 @@ class ColBERTRetriever(LateInteractionRetriever):
             kmeans_niters=kmeans_niters,
             checkpoint=self.checkpoint,
         )
-        self.overwrite = True
+        self.overwrite = overwrite
 
     def get_name(self) -> str:
         return f"ColBERTRetriever-{self.model_name}"
