@@ -24,7 +24,5 @@ class CohereEmbedding(Embedding):
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def get_embeddings(self, texts: list[str], mode: str) -> npt.NDArray[np.float64]:
-        embeddings = self.client.embed(
-            texts, input_type="search_document", model=self.model_name
-        ).embeddings
+        embeddings = self.client.embed(texts, input_type="search_document", model=self.model_name).embeddings
         return np.asarray(embeddings)

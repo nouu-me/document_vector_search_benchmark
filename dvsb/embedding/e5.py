@@ -2,14 +2,11 @@ import numpy as np
 import numpy.typing as npt
 import torch
 from transformers import AutoModel, AutoTokenizer
-from zmq import has
 
 from .embedding import EMBEDDING_REGISTRY, Embedding
 
 
-def average_pool(
-    last_hidden_states: torch.Tensor, attention_mask: torch.Tensor
-) -> torch.Tensor:
+def average_pool(last_hidden_states: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
     last_hidden = last_hidden_states.masked_fill(~attention_mask[..., None].bool(), 0.0)
     return last_hidden.sum(dim=1) / attention_mask.sum(dim=1)[..., None]
 
@@ -36,14 +33,12 @@ class E5Embedding(Embedding):
             texts = ["query: " + text for text in texts]
         else:
             texts = ["passage: " + text for text in texts]
-        batch_dict = self.tokenizer(
-            texts, max_length=512, padding=True, truncation=True, return_tensors="pt"
-        ).to(self.device)
+        batch_dict = self.tokenizer(texts, max_length=512, padding=True, truncation=True, return_tensors="pt").to(
+            self.device
+        )
         with torch.inference_mode():
             outputs = self.model(**batch_dict)
-            embeddings = average_pool(
-                outputs.last_hidden_state, batch_dict["attention_mask"]
-            )
+            embeddings = average_pool(outputs.last_hidden_state, batch_dict["attention_mask"])
         if self.device == "cuda":
             embeddings = embeddings.cpu()
         result: npt.NDArray[np.float64] = embeddings.numpy()

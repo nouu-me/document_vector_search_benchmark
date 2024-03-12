@@ -1,33 +1,28 @@
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Iterable
-import faiss
 
+import faiss  # noqa: F401
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import torch
 import yaml
 from dvsb.data import DATASET_REGISTRY, Dataset
 from dvsb.embedding import EMBEDDING_REGISTRY, Embedding
-
-from dvsb.late_interaction_retrievers import (
-    LATE_INTERACTION_REGISTRY,
-    LateInteractionRetriever,
-)
+from dvsb.late_interaction_retrievers import LATE_INTERACTION_REGISTRY, LateInteractionRetriever
 from dvsb.late_interaction_retrievers._colbert import Run, RunConfig
 from dvsb.metric import METRIC_REGISTRY, Metric
 from dvsb.relevance import RELEVANCE_REGISTRY, Relevance
 from loguru import logger
 from tqdm import tqdm
-import torch
 
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("run_benchmark")
-    parser.add_argument(
-        "-n", "--name", help="config name", required=False, default="default"
-    )
+    parser.add_argument("-n", "--name", help="config name", required=False, default="default")
     parser.add_argument("--no-cache", action="store_true")
     return parser
 
@@ -82,7 +77,10 @@ def make_batch(iterables: Iterable, batch_size: int) -> Iterable:
 
 def get_embeddings_cache_dir(dataset: Dataset, embedding: Embedding) -> Path:
     return Path(
-        f"/mnt/vol_b/.cache/dvsb/embeddings/{dataset.get_name()}/{embedding.get_name()}"
+        Path(os.getenv("DBSV_CACHE_DIR", "~/.dvsb"))
+        / "embeddings"
+        / dataset.get_name()
+        / embedding.get_name()
     ).expanduser()
 
 
@@ -115,30 +113,23 @@ def main() -> None:
         config = yaml.safe_load(fin)
 
     cache = not args.no_cache
-    datasets = [
-        load_dataset(dataset_config, cache=cache)
-        for dataset_config in config["datasets"]
-    ]
+    datasets = [load_dataset(dataset_config, cache=cache) for dataset_config in config["datasets"]]
     logger.info("datasets:")
     for dataset in datasets:
         logger.info("- " + json.dumps(dataset.get_stats()))
 
-    if config['embeddings'] is not None:
-      embeddings = [
-          load_embedding(embedding_config) for embedding_config in config["embeddings"]
-      ]
-      logger.info("embeddings:")
-      for embedding in embeddings:
-          logger.info("- " + embedding.get_name())
+    if config["embeddings"] is not None:
+        embeddings = [load_embedding(embedding_config) for embedding_config in config["embeddings"]]
+        logger.info("embeddings:")
+        for embedding in embeddings:
+            logger.info("- " + embedding.get_name())
     else:
-      embeddings = []
+        embeddings = []
 
     if "late_interaction_retrievers" in config:
         late_interaction_retrievers = [
             load_late_interaction_retriever(late_interaction_retriever_config)
-            for late_interaction_retriever_config in config[
-                "late_interaction_retrievers"
-            ]
+            for late_interaction_retriever_config in config["late_interaction_retrievers"]
         ]
     else:
         late_interaction_retrievers = []
@@ -146,9 +137,7 @@ def main() -> None:
     for late_interaction_retriever in late_interaction_retrievers:
         logger.info("- " + late_interaction_retriever.get_name())
 
-    relevances = [
-        load_relevance(relevance_config) for relevance_config in config["relevances"]
-    ]
+    relevances = [load_relevance(relevance_config) for relevance_config in config["relevances"]]
     logger.info("relevances:")
     for relevance in relevances:
         logger.info("- " + relevance.get_name())
@@ -161,59 +150,46 @@ def main() -> None:
     records = []
 
     if embeddings:
-      for embedding in embeddings:
-          bsize = 64
-          if "bge-m3" in embedding.get_name():
-              bsize = 4
-          embedding.load(has_cuda=torch.cuda.is_available())
-          logger.info(f"embedding: {embedding.get_name()}")
-          for dataset in datasets:
-              logger.info(f"dataset: {dataset.get_name()}")
-              cache_dir = get_embeddings_cache_dir(dataset, embedding)
-              if cache and cache_dir.exists():
-                  query_embeddings, context_embeddings = load_embeddings_from_cache(
-                      cache_dir
-                  )
-              else:
-                  batch_query_embeddings = []
-                  for queries in tqdm(
-                      list(make_batch(dataset.get_queries(), batch_size=bsize))
-                  ):
-                      batch_query_embeddings.append(
-                          embedding.get_embeddings(queries, mode="query")
-                      )
-                  query_embeddings = np.concatenate(batch_query_embeddings, axis=0)
-                  batch_context_embeddings = []
-                  for contexts in tqdm(
-                      list(make_batch(dataset.get_contexts(), batch_size=bsize))
-                  ):
-                      batch_context_embeddings.append(
-                          embedding.get_embeddings(contexts, mode="context")
-                      )
-                  context_embeddings = np.concatenate(batch_context_embeddings, axis=0)
-                  if cache:
-                      cache_embeddings(query_embeddings, context_embeddings, cache_dir)
-              for relevance in relevances:
-                  logger.info(f"relevance: {relevance.get_name()}")
-                  relevance_scores = relevance.compute(
-                      query_embeddings, context_embeddings
-                  )
-                  metric_scores = {}
-                  for metric in metrics:
-                      metric_score = metric.compute(
-                          dataset.get_related_context_locations(), scores=relevance_scores
-                      )
-                      logger.info(f"{metric.get_name()}: {round(metric_score, 5)}")
-                      metric_scores[metric.get_name()] = metric_score
-                  records.append(
-                      {
-                          "dataset": dataset.get_name(),
-                          "embedding": embedding.get_name(),
-                          "relevance": relevance.get_name(),
-                      }
-                      | metric_scores
-                  )
-          del embedding
+        for embedding in embeddings:
+            bsize = 64
+            if "bge-m3" in embedding.get_name():
+                bsize = 4
+            embedding.load(has_cuda=torch.cuda.is_available())
+            logger.info(f"embedding: {embedding.get_name()}")
+            for dataset in datasets:
+                logger.info(f"dataset: {dataset.get_name()}")
+                cache_dir = get_embeddings_cache_dir(dataset, embedding)
+                if cache and cache_dir.exists():
+                    query_embeddings, context_embeddings = load_embeddings_from_cache(cache_dir)
+                else:
+                    batch_query_embeddings = []
+                    for queries in tqdm(list(make_batch(dataset.get_queries(), batch_size=bsize))):
+                        batch_query_embeddings.append(embedding.get_embeddings(queries, mode="query"))
+                    query_embeddings = np.concatenate(batch_query_embeddings, axis=0)
+                    batch_context_embeddings = []
+                    for contexts in tqdm(list(make_batch(dataset.get_contexts(), batch_size=bsize))):
+                        batch_context_embeddings.append(embedding.get_embeddings(contexts, mode="context"))
+                    context_embeddings = np.concatenate(batch_context_embeddings, axis=0)
+                    if cache:
+                        cache_embeddings(query_embeddings, context_embeddings, cache_dir)
+                for relevance in relevances:
+                    logger.info(f"relevance: {relevance.get_name()}")
+                    relevance_scores = relevance.compute(query_embeddings, context_embeddings)
+                    metric_scores = {}
+                    for metric in metrics:
+                        preds = np.argsort(relevance_scores, axis=1)[:, ::-1].tolist()
+                        metric_score = metric.compute(dataset.get_related_context_locations(), preds)
+                        logger.info(f"{metric.get_name()}: {round(metric_score, 5)}")
+                        metric_scores[metric.get_name()] = metric_score
+                    records.append(
+                        {
+                            "dataset": dataset.get_name(),
+                            "embedding": embedding.get_name(),
+                            "relevance": relevance.get_name(),
+                        }
+                        | metric_scores
+                    )
+            del embedding
 
     for late_interaction_retriever in late_interaction_retrievers:
         model_name = late_interaction_retriever.get_name()
@@ -230,19 +206,17 @@ def main() -> None:
                 )
                 queries = dataset.get_queries()
                 y_pred = late_interaction_retriever.query(queries, k=100)
-                relevance = "Cosine"
+                relevance_name = "Cosine"
                 metric_scores = {}
                 for metric in metrics:
-                    metric_score = metric.compute(
-                        dataset.get_related_context_locations(), y_pred=y_pred
-                    )
+                    metric_score = metric.compute(dataset.get_related_context_locations(), y_pred=y_pred)
                     logger.info(f"{metric.get_name()}: {round(metric_score, 5)}")
                     metric_scores[metric.get_name()] = metric_score
                 records.append(
                     {
                         "dataset": dataset.get_name(),
                         "embedding": late_interaction_retriever.get_name(),
-                        "relevance": relevance,
+                        "relevance": relevance_name,
                     }
                     | metric_scores
                 )

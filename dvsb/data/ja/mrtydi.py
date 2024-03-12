@@ -1,10 +1,11 @@
 import json
+import os
+import random
 from pathlib import Path
-from typing import Optional, Literal
+from typing import Literal, Optional
 
 import datasets
 import requests
-import random
 from dvsb.data.dataset import DATASET_REGISTRY, Dataset
 from loguru import logger
 
@@ -44,9 +45,8 @@ class MrTyDi(Dataset):
         return self.related_context_locations
 
     def get_cache_dir(self) -> Path:
-        return Path(
-            f"~/.dvsb/dataset/ja/mrtydi-v{self.version}-{self.split}"
-        ).expanduser()
+        root_cache_dir = Path(os.getenv("DVSB_CACHE_DIR", "~/.dvsb"))
+        return (root_cache_dir / "dataset" / "ja" / f"mrtydi-v{self.version}-{self.split}").expanduser()
 
     def __save_cache(self) -> None:
         cache_dir = self.get_cache_dir()
@@ -74,7 +74,12 @@ class MrTyDi(Dataset):
             self.related_context_locations = json.load(fin)
 
     def load_data(
-        self, version: str, split: str, cache: bool, sampling_method: Optional[Literal["hard_negative", "random"]] = None, corpus_sample: int = 0
+        self,
+        version: str,
+        split: str,
+        cache: bool,
+        sampling_method: Optional[Literal["hard_negative", "random"]] = None,
+        corpus_sample: int = 0,
     ) -> None:
         if cache:
             cache_dir = self.get_cache_dir()
@@ -89,9 +94,8 @@ class MrTyDi(Dataset):
         data = datasets.load_dataset("castorini/mr-tydi", "japanese", split)[split]
         context_to_index = {}  # Map context text to its index
 
-
         if sampling_method is not None:
-            corpus = datasets.load_dataset("castorini/mr-tydi-corpus", "japanese")['train']
+            corpus = datasets.load_dataset("castorini/mr-tydi-corpus", "japanese")["train"]
             if sampling_method == "hard_negative":
                 if corpus_sample < 0:
                     corpus_sample = 100
@@ -105,10 +109,9 @@ class MrTyDi(Dataset):
                     random.seed(42)
                     passage_ids = set(random.sample(corpus["docid"], corpus_sample))
 
-            passages_map = {x["docid"]: {'title': x['title'], 'text': x["text"]} for x in corpus}
+            passages_map = {x["docid"]: {"title": x["title"], "text": x["text"]} for x in corpus}
         else:
             raise ValueError("Must specify a valid sampling method.")
-
 
         for d in data:
             cur_queries = [d["query"]]
@@ -116,16 +119,16 @@ class MrTyDi(Dataset):
 
             positive_indices = []
             for paragraph in d["positive_passages"]:
-                cur_context =  passages_map[paragraph["docid"]]
-                cur_context = f"{cur_context['title']} {cur_context['text']}"
+                cur_context_map = passages_map[paragraph["docid"]]
+                cur_context = f"{cur_context_map['title']} {cur_context_map['text']}"
                 if cur_context not in context_to_index:
                     context_to_index[cur_context] = len(self.contexts)
                     self.contexts.append(cur_context)
                 positive_indices.append(context_to_index[cur_context])
 
             for paragraph in d["negative_passages"]:
-                cur_context =  passages_map[paragraph["docid"]]
-                cur_context = f"{cur_context['title']} {cur_context['text']}"
+                cur_context_map = passages_map[paragraph["docid"]]
+                cur_context = f"{cur_context_map['title']} {cur_context_map['text']}"
                 if cur_context not in context_to_index:
                     context_to_index[cur_context] = len(self.contexts)
                     self.contexts.append(cur_context)
@@ -133,8 +136,8 @@ class MrTyDi(Dataset):
             # Link each query to its relevant (positive) contexts
             self.related_context_locations.extend([positive_indices] * len(cur_queries))
 
-        for pid, passage in passages_map.items():
-            passage = f"{passage['title']} {passage['text']}"
+        for pid, passage_map in passages_map.items():
+            passage = f"{passage_map['title']} {passage_map['text']}"
             if pid not in passage_ids:
                 continue
             if passage not in context_to_index:

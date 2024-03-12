@@ -1,9 +1,10 @@
 import json
+import os
+import random
 from pathlib import Path
-from typing import Optional, Literal
+from typing import Literal, Optional
 
 import datasets
-import random
 import requests
 from dvsb.data.dataset import DATASET_REGISTRY, Dataset
 from loguru import logger
@@ -50,9 +51,8 @@ class MIRACL(Dataset):
         return self.related_context_locations
 
     def get_cache_dir(self) -> Path:
-        return Path(
-            f"~/.dvsb/dataset/ja/miracl-v{self.version}-{self.split}"
-        ).expanduser()
+        root_cache_dir = Path(os.getenv("DVSB_CACHE_DIR", "~/.dvsb"))
+        return (root_cache_dir / "dataset" / "ja" / f"miracl-v{self.version}-{self.split}").expanduser()
 
     def __save_cache(self) -> None:
         cache_dir = self.get_cache_dir()
@@ -107,7 +107,7 @@ class MIRACL(Dataset):
                     corpus_sample = 100
                 hard_neg_urls = "https://ben.clavie.eu/retrieval/miracl_ja_bm25_top1000.json"
                 hard_negs = requests.get(hard_neg_urls).json()
-                print('SAMPLED :', corpus_sample)
+                print("SAMPLED :", corpus_sample)
                 passage_ids = set([docid for x in hard_negs.values() for docid in x[:corpus_sample]])
 
             elif sampling_method == "random":
@@ -116,7 +116,7 @@ class MIRACL(Dataset):
                     passage_ids = set(random.sample(corpus["docid"], corpus_sample))
 
             corpus = corpus.filter(lambda x: x["docid"] in passage_ids)
-            passages_map = {x["docid"]: {'title': x['title'], 'text': x["text"]} for x in corpus}
+            passages_map = {x["docid"]: {"title": x["title"], "text": x["text"]} for x in corpus}
             del corpus
         else:
             passage_ids = set()
@@ -143,8 +143,8 @@ class MIRACL(Dataset):
             self.related_context_locations.extend([positive_indices] * len(cur_queries))
 
         if passages_map:
-            for _, passage in passages_map.items():
-                passage = f"{passage['title']} {passage['text']}"
+            for _, passage_map in passages_map.items():
+                passage = f"{passage_map['title']} {passage_map['text']}"
                 if passage not in context_to_index:
                     context_to_index[passage] = len(self.contexts)
                     self.contexts.append(passage)
