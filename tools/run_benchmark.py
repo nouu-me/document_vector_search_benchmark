@@ -77,10 +77,7 @@ def make_batch(iterables: Iterable, batch_size: int) -> Iterable:
 
 def get_embeddings_cache_dir(dataset: Dataset, embedding: Embedding) -> Path:
     return Path(
-        Path(os.getenv("DBSV_CACHE_DIR", "~/.dvsb"))
-        / "embeddings"
-        / dataset.get_name()
-        / embedding.get_name()
+        Path(os.getenv("DBSV_CACHE_DIR", "~/.dvsb")) / "embeddings" / dataset.get_name() / embedding.get_name()
     ).expanduser()
 
 

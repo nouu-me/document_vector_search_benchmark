@@ -43,7 +43,9 @@ class JSQuADWithoutHeadline(Dataset):
 
     def get_cache_dir(self) -> Path:
         root_cache_dir = Path(os.getenv("DVSB_CACHE_DIR", "~/.dvsb"))
-        return (root_cache_dir / "dataset" / "ja" / f"jsquad-v{self.version}-without-headline-{self.split}").expanduser()
+        return (
+            root_cache_dir / "dataset" / "ja" / f"jsquad-v{self.version}-without-headline-{self.split}"
+        ).expanduser()
 
     def __save_cache(self) -> None:
         cache_dir = self.get_cache_dir()
@@ -92,7 +94,7 @@ class JSQuADWithoutHeadline(Dataset):
                 cur_context = paragraph["context"]
                 first_sep_pos = cur_context.find("[SEP]")
                 if first_sep_pos >= 0:
-                    cur_context = cur_context[first_sep_pos + len("[SEP]"):].lstrip()
+                    cur_context = cur_context[first_sep_pos + len("[SEP]") :].lstrip()
                 self.titles.extend([title] * len(cur_queries))
                 self.queries.extend(cur_queries)
                 context_location = len(self.contexts)
