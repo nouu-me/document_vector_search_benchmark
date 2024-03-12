@@ -8,7 +8,7 @@ from loguru import logger
 
 
 @DATASET_REGISTRY.register
-class JSQuAD(Dataset):
+class JSQuADWithoutHeadline(Dataset):
     URLS = {
         "1.1": {
             "train": "https://github.com/yahoojapan/JGLUE/raw/main/datasets/jsquad-v1.1/train-v1.1.json",
@@ -19,7 +19,7 @@ class JSQuAD(Dataset):
     def __init__(self, version: str = "1.1", split: str = "train", cache: bool = True) -> None:
         self.version = version
         self.split = split
-        self.name = f"JSQuAD-v{version}-{split}"
+        self.name = f"JSQuAD-v{version}-without-headline-{split}"
         self.titles: list[str] = []
         self.queries: list[str] = []
         self.contexts: list[str] = []
@@ -43,7 +43,9 @@ class JSQuAD(Dataset):
 
     def get_cache_dir(self) -> Path:
         root_cache_dir = Path(os.getenv("DVSB_CACHE_DIR", "~/.dvsb"))
-        return (root_cache_dir / "dataset" / "ja" / f"jsquad-v{self.version}-{self.split}").expanduser()
+        return (
+            root_cache_dir / "dataset" / "ja" / f"jsquad-v{self.version}-without-headline-{self.split}"
+        ).expanduser()
 
     def __save_cache(self) -> None:
         cache_dir = self.get_cache_dir()
@@ -76,7 +78,7 @@ class JSQuAD(Dataset):
             if cache_dir.exists():
                 self.__load_cache()
                 return
-        logger.info(f"loading JSQuAD dataset (version: {version}, split: {split})")
+        logger.info(f"loading JSQuAD-without-headline dataset (version: {version}, split: {split})")
         self.titles = []
         self.queries = []
         self.contexts = []
@@ -90,6 +92,9 @@ class JSQuAD(Dataset):
             for paragraph in d["paragraphs"]:
                 cur_queries = [qa["question"] for qa in paragraph["qas"]]
                 cur_context = paragraph["context"]
+                first_sep_pos = cur_context.find("[SEP]")
+                if first_sep_pos >= 0:
+                    cur_context = cur_context[first_sep_pos + len("[SEP]") :].lstrip()
                 self.titles.extend([title] * len(cur_queries))
                 self.queries.extend(cur_queries)
                 context_location = len(self.contexts)

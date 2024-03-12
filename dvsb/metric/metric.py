@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -14,9 +13,8 @@ class Metric(ABC):
     @abstractmethod
     def compute(
         self,
-        y_true: list[list[int]],
-        scores: Optional[npt.NDArray[np.float64]] = None,
-        y_pred: Optional[list[list[int]]] = None,
+        y_true: list[list[int]] | npt.NDArray[np.int_],
+        y_pred: list[list[int]] | npt.NDArray[np.int_],
     ) -> float:
         ...
 

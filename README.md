@@ -14,6 +14,10 @@ required environmental variables:
 - `OPENAI_API_KEY` (to use OpenAI's embedding API)
 - `COHERE_API_KEY` (to use Cohere's embedding API)
 
+optional:
+
+- `DBSV_CACHE_DIR` (for cache directory, default: `~/.dvsb`)
+
 to install all dependencies, perform
 
 ```bash

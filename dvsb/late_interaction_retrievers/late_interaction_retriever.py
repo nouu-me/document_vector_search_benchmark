@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any
+
 from dvsb.registry import Registry
 
 
 class LateInteractionRetriever(ABC):
+    def __init__(self, n_gpu: int = 1) -> None:
+        self.n_gpu = n_gpu
+
     @abstractmethod
     def get_name(self) -> str:
         ...
